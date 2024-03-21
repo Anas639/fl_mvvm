@@ -1,20 +1,25 @@
 name: fl_mvvm
 description: Easy MVVM pattern with Flutter.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/Anas639/fl_mvvm
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
 
 dependencies:
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.3.6
+  meta: ^1.10.0
+  signals_flutter: ^4.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

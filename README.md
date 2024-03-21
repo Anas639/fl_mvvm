@@ -1,55 +1,43 @@
 A concise and powerful Flutter package that implements the **MVVM** (*Model-View-ViewModel*)
 architecture.
-Built on top of **Riverpod** for state management, this package provides a seamless and efficient
+Built on top of **[Signals](https://pub.dev/packages/signals)** for state management, this package provides a seamless and efficient
 way to
 handle the state of the view in your Flutter applications. With a clean separation of concerns and a
 reactive approach, it simplifies the development process and enhances the maintainability of your
 codebase. Empower your Flutter projects with the **MVVM** architecture and leverage the capabilities
 of
-**Riverpod** for efficient state management.
+**[Signals](https://pub.dev/packages/signals)** for efficient state management.
 
 ## Features 🎯
 
-* **MVVM Architecture:** Utilize the Model-View-ViewModel (MVVM) architecture pattern to ensure a
-  clear separation of concerns and enhance code organization and maintainability.
+1. 🏗️ **View and View Model Creation:** Easily create Views and View Models for your application.
 
-* **FlView Class:** Render the view by extending the FlView class. Override methods for building
-  different states, including Data State, Empty State, Error State, and Loading State. Customize the
-  view based on the current state of the application.
+1. 🛠️ **State Handling:** Built-in support for various predefined states such as Data State, Loading State, Error State and Empty State.
 
-* **FlViewModel Class:** Handle the state of the view by extending the FlViewModel class. Link the
-  custom view to the view model using a generic type and a method. Implement the createViewModel()
-  method to return an FlViewModel object.
+1. 🎨 **Custom State Support:** Define and integrate custom states tailored to the application's needs.
 
-* **Container Widget:** Specify a container widget that wraps the entire view. This allows users to
-  customize the layout and appearance of the view according to their needs.
+1. 🔄 **State-Driven UI:** Views react dynamically to state changes, with each state managed separately in dedicated build methods.
 
-## Getting started 🚀
+1. 📦 **Custom Container Support:** Include custom containers that remain unaffected by state changes, providing consistent UI elements across different states.
 
-Before doing anything with the package wrap your **App** with a `ProviderScope`
+1. 🧩 **Flexible UI Behavior:** Override methods to customize UI behavior for each state, ensuring a seamless user experience.
 
-```dart
-void main() {
-  runApp(const ProviderScope(child: MyApp()));
-}
-```
+1. 💉 **Dependency Management:** View Models can depend on other View Model states through reactive signals, enabling reactive state management throughout the application.
 
-This ensures that the necessary providers and state management capabilities are available throughout
-your Flutter App
+1. ⚗️ **Reactive State Management:** Utilize reactive programming paradigms to manage state efficiently across the entire application.
 
 ## Usage 🔨
 
 * [The ViewModel](#the-viewmodel)
-    * [Create a ViewModel 🧩](#create-a-viewmodel-)
-    * [Stateful ViewModel 💾](#stateful-viewmodel-)
-    * [Initialize the state of ViewModel 🏁](#initialize-the-state-of-a-viewmodel-)
-    * [onInit 🌱](#oninit-)
+    * [Create a ViewModel 🏗️](#create-a-viewmodel-)
+    * [Using the state 💾](#using-the-state-)
+    * [onViewInitialized 🌱](#onviewinitialized-)
     * [onDispose ♻️](#ondispose-)
-    * [refresh and refreshState 🔄](#refresh-and-refreshstate-)
+    * [Auto Dispose 🤖](#auto-dispose-)
     * [Loading State ⏳](#loading-state-)
     * [Data State 📊](#data-state-)
     * [Future Data ⏭](#future-data-)
-    * [Empty State 💨](#empty-state-)
+    * [Empty State 🫙](#empty-state-)
     * [Error State ❗](#error-state-)
 * [The View 👀](#the-view-👀)
     * [Create a View 🖌️](#create-a-view-)
@@ -60,7 +48,7 @@ your Flutter App
 
 ### The ViewModel
 
-#### *Create a ViewModel* 🧩
+#### *Create a ViewModel* 🏗️
 
 To create a **ViewModel**, simply create a class that extends the `FlViewModel` class
 
@@ -68,7 +56,7 @@ To create a **ViewModel**, simply create a class that extends the `FlViewModel` 
 class MyViewModel extends FlViewModel {}
 ```
 
-#### *Stateful ViewModel* 💾
+#### *Using the state* 💾
 
 The state of each **ViewModel** is accessible using the getter `value`
 
@@ -78,75 +66,61 @@ MyViewModel viewModel = MyViewModel();
 dynamic state = viewModel.value;
 ```
 
-As you can see the type of the state is `dynamic` but you can set the type to whatever you want
-using a generic type
+As you can see the type of the state is `dynamic` but you can set the type to whatever you want using a generic type
 
 ```dart
 
 MyViewModel viewModel = MyViewModel<String>();
-String state = viewModel.value;
+String? state = viewModel.value;
 ```
 
-📝 The actual state of `FlViewModel<T>` is represented by an `AsyncValue<T>`. In the example
-mentioned
-above, the state is specifically an `AsyncValue<String>`.
-However, it's important to note that when accessing the getter `value`, it returns only the value of
-the `AsyncValue` instead of the entire state instance.
+By default, the state of the view model will be an Empty State, and the value of an empty state will be `null`.
 
-#### *Initialize the state of a ViewModel* 🏁
+#### *onViewInitialized* 🌱
 
-When a `FlViewModel` instance gets created, it builds its state using the return value from
-the `build()` method.
-By default the `build()` method of an `FlViewModel` returns null.
-
-You can override it to return the initial state of your **ViewModel**
-
-```dart
-class UsersListViewModel extends FlViewModel<List<User>> {
-  @override
-  FutureOr<List<User>?> build() {
-    return UsersRepository
-        .getAllUsers(); // In this example the initial state will be all the users returned from the UserRepository
-  }
-}
-```
-
-#### *onInit* 🌱
-
-`onInit()` is a useful method that allows you to run code typically for initializing parameters,
-immediately after the **View** is initialized
+`onViewInitialized()` is a useful method that allows you to run code typically for initializing parameters, immediately after the **View** is initialized
 
 ```dart
 class MyViewModel extends FlViewModel {
   @override
-  void onInit() {
+  void onViewInitialized() {
     // This code will run only once when the associated View is initialized.
   }
 }
 ```
 
-📝 This method is executed only once.
+📝 This method is executed only once when the first view using this view model is initialized.
 
 #### *onDispose* ♻️
 
-`onDispose()` is a useful method that allows you to run code just before the associated **View** is
-is disposed.
+`onDispose()` is a useful method that you can use to clean things up. For example, you can release some resources like listeners, streams or files.
+
+> 💡 This method will be called when the view model is getting disposed of
 
 ```dart
 class MyViewModel extends FlViewModel {
   @override
   void onDispose() {
-    // This code will run when the associated View is being disposed
+    // This code will run when the view model is getting disposed of
     // You might want to release resources, dispose of a disposable state, stop a timer, etc...
   }
 }
 ```
 
-#### *refresh and refreshState* 🔄
+#### *Auto Dispose* 🤖
 
-The `refresh()` method triggers a redraw of the **View**. On the other hand, the `refreshState()`
-rebuilds the **ViewModel** state by invoking the `build()` method
+Setting `autoDispose` to true will automatically mark the view model as disposed of when there are no more state listeners (Either Views or ViewModels).
 
+```dart
+class MyViewModel extends FlViewModel{
+  MyViewModel({super.autoDispose});
+}
+
+MyViewModel vm = MyViewModel(autoDispose:true);
+```
+
+By default, `autoDispose` is set to false.
+> ⚠️ Do not set `autoDispose` to true if other views or view models might depend on the state of your view model in the future
 #### *Loading State* ⏳
 
 To display the *Loading state* you can use the built-in `setLoading()` method:
@@ -156,20 +130,12 @@ class MyViewModel extends FlViewModel {
 
   void loadUsers() async {
     setLoading(); // This will cause the View to render the loading UI state
-    // Alternatively, you can use:
-    // state = const AsyncValue.loading();
-    // or
-    // state = const AsyncLoading();
-
     /*...Continue loading users...*/
   }
 }
 ```
 
-By calling `setLoading()`, you trigger the **View** to render the loading UI state, indicating that
-data
-is being fetched or processed. Alternatively, you can directly assign `AsyncValue.loading()` or
-`AsyncLoading()` to the state to achieve the same effect.
+By calling `setLoading()`, you trigger the **View** to render the loading UI state, indicating that data is being fetched or processed.
 
 #### *Data State* 📊
 
@@ -177,29 +143,18 @@ To display the *Data state* you can use the built-in `setData()` method:
 
 ```dart
 class CounterViewModel extends FlViewModel<int> {
-  @override
-  FutureOr<int?> build() {
-    return 0;
-  }
 
   void incrementCounter() {
     int currentValue = value ?? 0;
     int newValue = currentValue + 1;
     setData(newValue); // This will cause the view to render the new Data
 
-
-    // Alternatively you can use: 
-    // state = AsyncValue.data(newValue); 
-    // or
-    // state = AsyncData(newValue);
-
   }
 }
 ```
 
 By calling `setData(newValue)`, you update the **ViewModel** state with the new value, which
-triggers the **View** to render the updated Data state. Alternatively, you can directly
-assign `AsyncValue.data(newValue)` or `AsyncData(newValue)` to the state to achieve the same effect.
+triggers the **View** to render the updated Data state.
 
 #### *Future Data* ⏭
 
@@ -242,7 +197,7 @@ void loadProducts() {
 If the `Future` throws an *Error*, `setFutureData()` will catch it and change the state to
 the *Error* state.
 
-#### *Empty State* 💨
+#### *Empty State* 🫙
 
 The state is considered empty when there is no value (`state.value == null`) or when the value is an
 empty `Iterable` or `Map`.
@@ -280,23 +235,15 @@ class CounterViewModel extends FlViewModel<int> {
     int newValue = currentValue + 1;
     if (newValue > 10) {
       setError(Exception("You have reached the limits 👮"));
-
-      // Alternatively you can use:
-      // state = AsyncValue.error(Exception("You have reached the limits 👮"), StackTrace.current);
-      // or
-      // state = AsyncError(Exception("You have reached the limits 👮"), StackTrace.current);
+    } else{
+      setData(newValue);
     }
-    state = AsyncValue.data(newValue);
   }
 }
 ```
 
 By calling `setError(Exception("You have reached the limits 👮"))`, you set the state to the *Error*
 state, which triggers the **View** to render the corresponding UI for handling errors.
-Alternatively,
-you can directly assign `AsyncValue.error(Exception("You have reached the limits 👮"),
-StackTrace.current)` or `AsyncError(Exception("You have reached the limits 👮"), StackTrace.current)`
-to the state.
 
 You can also set the *Error* state in a `catch` block:
 
@@ -314,7 +261,7 @@ class CounterViewModel extends FlViewModel<int> {
       if (newValue > 10) {
         throw Exception("You have reached the limits 👮");
       }
-      state = AsyncValue.data(newValue);
+      setData(newValue);
     } catch (error, stack) {
       setError(error, stack);
     }
@@ -590,13 +537,13 @@ class MyView extends FlView<MyViewModel> {
 ```
 
 ---
-📝 PS: You can find a full example in the `/example` folder.
+📝 PS: You can find a full example in the `/examples` folder.
 
 ## Additional information ℹ️
 
 Thank you for using this package! Your feedback and contribution are greatly appreciated.
 As a single developer, I have created this package with the intention of assisting you in building
-reactive views using the MVVM pattern and Riverpod.
+reactive views using the MVVM pattern and **[Signals](https://pub.dev/packages/signals)**.
 While I have put in my best effort, please note that this package may not be perfect or suitable for
 all types of projects. If you encounter any issue or have suggestions for improvement, please don't
 hesitate to file an issue on the Github repository. Additionally, contributions in the form of pull
