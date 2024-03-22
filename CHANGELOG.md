@@ -1,5 +1,6 @@
-## 2.0.0
+## 2.0.0-dev-1
 
+* Update Documentation
 * Support custom states
 * Revise the FlViewModel class
 * Make the view testable

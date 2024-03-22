@@ -1,3 +1,4 @@
+/// Flutter MVVM library
 library fl_mvvm;
 
 export 'package:signals_flutter/signals_flutter.dart'

@@ -39,12 +39,15 @@ of
     * [Future Data ⏭](#future-data-)
     * [Empty State 🫙](#empty-state-)
     * [Error State ❗](#error-state-)
+    * [Custom State 📦](#custom-state-)
+    * [Depending on other view models ⚗️](#depending-on-other-view-models-)
 * [The View 👀](#the-view-👀)
     * [Create a View 🖌️](#create-a-view-)
     * [Link a View to a ViewModel 🔗](#link-a-view-to-a-viewmodel-)
-    * [Initialize the ViewModel with parameters 🎛️](#initialize-the-viewmodel-with-parameters-)
+    * [Keep the view model alive🍃](#keep-the-view-model-alive-)
     * [The UI states of a View 🎨](#the-ui-states-of-a-view-)
     * [Wrapping the View with a Container 📦](#wrapping-the-view-with-a-container-)
+* [Testing 🧪](#testing-)
 
 ### The ViewModel
 
@@ -198,12 +201,6 @@ If the `Future` throws an *Error*, `setFutureData()` will catch it and change th
 the *Error* state.
 
 #### *Empty State* 🫙
-
-The state is considered empty when there is no value (`state.value == null`) or when the value is an
-empty `Iterable` or `Map`.
-
-If the specified condition is met, it triggers the **View** to render the Empty UI state.
-
 You can use the built-in `setEmpty()` method to clear the current state:
 
 ```dart
@@ -216,8 +213,7 @@ class MyViewModel extends FlViewModel<List<int>> {
 
 By calling `setEmpty()`, you clear the current state of the **ViewModel**, which triggers the **
 View** to
-render the Empty UI state. This is useful when you want to indicate that there is no data to
-display.
+render the Empty UI state. This is useful when you want to indicate that there is no data to display.
 
 #### *Error State* ❗
 
@@ -225,10 +221,6 @@ To display the *Error* state you can use the built-in `setError()` method:
 
 ```dart
 class CounterViewModel extends FlViewModel<int> {
-  @override
-  FutureOr<int?> build() {
-    return 0;
-  }
 
   void incrementCounter() {
     int currentValue = value ?? 0;
@@ -249,10 +241,6 @@ You can also set the *Error* state in a `catch` block:
 
 ```dart
 class CounterViewModel extends FlViewModel<int> {
-  @override
-  FutureOr<int?> build() {
-    return 0;
-  }
 
   void incrementCounter() {
     try {
@@ -270,8 +258,70 @@ class CounterViewModel extends FlViewModel<int> {
 ```
 
 In the `catch` block, you catch the error and set it using `setError(error, stack)`, which triggers
-the
-**View** to render the Error UI state.
+the **View** to render the Error UI state.
+
+#### *Custom State* 📦
+
+If you want to create a custom state simply implement the FlState interface
+
+```dart
+class CustomState implements FlState{
+ // implementation ...
+}
+ ```
+
+ then use `viewModel.setState()` to use your custom state.
+
+For example, you might want to customize how the data is displayed:
+```dart
+enum DisplayMode{
+  list,
+  grid
+}
+
+class MyCustomState<T> implements FlState<T> {
+  const MyCustomState({required this.mode, this.data});
+  final DisplayMode mode;
+  @override
+  final T? data;
+}
+  
+myViewModel.setState(MyCustomLoadingState(mode: DisplayMode.list, data: [/*Lorem, Ipsum*/]));
+```
+
+#### *Depending on other view models* ⚗️
+Sometimes your view model requires the state of another view model and needs to rebuild on state change.
+
+Let's say you have a `ProductsViewModel` and a `FavoritesViewModel`. The `FavoritesViewModel` must filter favorites out of the products in the `ProductsViewModel`. To do so, simply override the `buildDependencies()` method.
+
+```dart
+final getIt = GetIt.instance;
+
+void main(){
+  getIt.registerSingleton<ProductsViewModel>(ProductsViewModel());
+}
+
+/// Holds the list of available products
+class ProductsViewModel extends FlViewModel<List<Product>>{
+
+}
+
+class FavoriteProductsViewModel extends FlViewModel<List<Product>>{
+  @override
+  buildDependencies(){
+    // Accessing ProductsViewModel.value will make this instance to automatically subscribe to the state of the ProductsViewModel instance
+
+    // In other words, when the state of ProductsViewModel updates
+    // This method will get called again
+    var favorites = getIt.get<ProductsViewModel>().value?.where((e)=>e.isFavorie);
+    setData(favorites);
+  }
+}
+
+```
+If you access another view model's value inside the `buildDependencies` method, the current view model will subscribe to the state of the other view model and whenever the state of the other view model (in our example the `ProductsViewModel`) the `buildDependencies` will get called again.
+
+In the case of the products/favorites, this can help manage the state across the app, since whenever the product list changes the favorites get updated right away.
 
 ### The View 👀
 
@@ -310,9 +360,7 @@ class MyWidget extends StatelessWidget {
 
 #### *Link a View to a ViewModel* 🔗
 
-When you create a **View**, you will be asked to override the `createViewModel()` method, and return
-an
-object of type `FlViewModel`
+When you create a **View**, you will be asked to override the `createViewModel()` method and return an object of type `FlViewModel`
 
 ```dart
 class MyViewModel extends FlViewModel {}
@@ -343,61 +391,79 @@ class MyView extends FlView<MyViewModel> {
 }
 ```
 
-📝 The returned **ViewModel** instance will be linked to this **View** throughout the lifecycle of
-the **View** and cannot be changed.
+> 📝 The returned **ViewModel** instance will be linked to this **View** throughout the lifecycle of the **View** and cannot be changed.
 
-#### *Initialize the ViewModel with parameters* 🎛️
-
-The `createViewModel()` method can come in handy when you want to initialize the view model with a
-parameter passed through the view.
-
-Imagine you have a view that show the list of users and that the you want to pass a filter to the
-view to only show users from a given city.
+Alternatively, you can pass a view model through the constructor:
 
 ```dart
-class UsersViewModel extends FlViewModel<List<User>> {
-  final String cityFilter;
 
-  UsersViewModel(this.cityFilter);
-
-  @override
-  FutureOr<List<User>> build() {
-    return UsersRepository.getUsers(
-        city: cityFilter); // when the viewModel builds it's state it will use the value of the cityFilter
-  }
+class MyView extends FlView<MyViewModel>{
+  const MyView({super.viewModel,});
 }
 
-class UsersView extends FlView<UsersViewModel> {
-  final String cityFilter;
 
-  const UsersView({super.key, requried this.cityFilter});
+MyView(viewModel: someViewModel);
+```
 
-  @override
-  UsersViewModel createViewModel() {
-    return UsersViewModel(
-        cityFilter); // create an instance of UsersViewModel and pass the value of the cityFilter 
-  }
-}
+#### *Keep the view model alive* 🍃
+In some cases, a View Model can act as a state manager and other views and view models depend on its state.
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+Suppose we want to have a view model that holds a list of products, and a view to display the loaded products.
+But this time we will have another view that displays our favorite products.
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Column(
-        children: [
-          Text("Hello world 🌍, what a wonderful view 👀!"),
-          SizedBox(height: 24),
-          UsersView(cityFilter: "Paris")
-          // Pass a parameter to the view the same way you do with any custom widget
-        ],
-      ),
-    );
-  }
+To do so, we must keep one view model that holds all the available products and inject it into memory using a service locator like [get_it](https://pub.dev/packages/get_it).
+
+The `ProductsListView` will depend on the state of the `ProductsViewModel` and so is the `FavoriteProductsViewModel`.
+
+By default, when a view is being disposed of it will attempt to dispose the view model as well. But In our case, we don't want the `ProductsViewModel` to get disposed of due to other parts of our application relying on its state.
+That's when `keepViewModelAlive` comes in handy, when set to true, the view won't attempt to dispose of the view model with it.
+This way even if the `ProductsListView` gets disposed of, the `ProductsViewModel` will stay alive, and its state will be usable. 
+
+You can set KeepViewModelAlive simply by using the super constructor like this:
+```dart
+class MyView extends FlView{
+  const MyView({super.key}):super(keepViewModelAlive:true);
 }
 ```
 
+Example:
+
+```dart
+final getIt = GetIt.instance;
+
+void main(){
+  getIt.registerSingleton<ProductsViewModel>(ProductsViewModel());
+}
+
+/// Holds the list of available products
+class ProductsViewModel extends FlViewModel<List<Product>>{
+
+}
+
+class ProductsListView extends FlView<ProductsViewModel>{
+
+  const ProductsListView():super(keepViewModelAlive:true);
+  @override
+  ProductsViewModel createViewModel(){
+    return getIt.get<ProductsViewModel>();
+  }
+}
+
+class FavoriteProductsViewModel extends FlViewModel<List<Product>>{
+  @override
+  buildDependencies(){
+    var favorites = getIt.get<ProductsViewModel>().value?.where((e)=>e.isFavorie);
+    setData(favorites);
+  }
+}
+
+class FavoriteProductsView extends FlView<FavoriteProductsViewModel>{
+  @override
+  FavoriteProductsViewModel createViewModel(){
+    return FavoriteProductsViewModel();
+  }
+}
+```
 #### *The UI states of a view* 🎨
 
 The **View** can handle 4 states of UI
@@ -407,7 +473,6 @@ The **View** can handle 4 states of UI
 3. Loading
 4. Error
 
-By default the view is initialized with the *Data* UI state
 Each UI state is handled by a method that returns a `Widget` that you can customize by overriding
 it.
 
@@ -418,14 +483,10 @@ you are obliged to implement when you extend the `FlView` class
 class Model {
   final String data;
 
-  const Model(this.data);
+  const Model({this.data="abc"});
 }
 
 class MyViewModel extends FlViewModel<Model> {
-  @override
-  FutureOr<Model> build() {
-    return const Model("abc");
-  }
 }
 
 class MyView extends FlView<MyViewModel> {
@@ -478,32 +539,34 @@ class MyView extends FlView<MyViewModel> {
   }
 }
 ```
+If you want to handle the UI of custom states, just override the `buildCustomState` method:
 
+```dart
+  @override
+  Widget buildCustomState(
+      BuildContext context, FlState state, MyViewModel viewModel) {
+    return const Text('Custom State');
+  }
+```
 #### *Wrapping the View with a Container* 📦
 
-Sometimes, you might need to wrap your **View** inside a container, you can do it the traditional
-way by wrapping the whole **View** widget with another widget that acts as a
-container
+Sometimes, you might need to wrap your **View** inside a container, you can do it the traditional way by wrapping the whole **View** widget with another widget that acts as a container
 
 ```dart 
 Container(child: MyView())
 ```
 
-Or you can override the `buildContainer()` method to use an inner container that will wrap
-the rendered UI states, while giving you access to the `FlViewModel` instance
+Or you can override the `buildContainer()` method to use an inner container that will wrap the rendered UI states while giving you access to the `FlViewModel` instance
 
 ```dart
 class Model {
   final String data;
 
-  const Model(this.data);
+  const Model({this.data="abc"});
 }
 
 class MyViewModel extends FlViewModel<Model> {
-  @override
-  FutureOr<Model> build() {
-    return const Model("abc");
-  }
+
 }
 
 class MyView extends FlView<MyViewModel> {
@@ -536,8 +599,43 @@ class MyView extends FlView<MyViewModel> {
 }
 ```
 
+### Testing 🧪
+
+You can test the view like any other widget, and if you want to inject a mock view model you can do so by using the viewModel parameter in the constructor of the view.
+
+```dart
+class MyView extends FlView{
+  const MyView({super.key, super.viewModel});
+}
+/**
+.
+.
+.
+*/
+ await tester.pumpWidget(MaterialApp(
+      home: MyView(
+        viewModel: mockViewModel,
+      ),
+    ));
+```
+
+On the other hand, view models have a useful method that you can use in your unit tests, which is `waitForStateChange`.
+
+This method will allow you to asynchronously wait for the state to change
+
+```dart
+ test('Test data reloaded', () async {
+    // Arrange
+    ExampleViewModel viewModel = ExampleViewModel(numberOfItems: 3);
+    // Act
+    viewModel.reload();
+    await viewModel.waitForStateChange<FlDataState>(timeout: 1000);
+    // Assert
+    expect(viewModel.value?.length, equals(3));
+  });
+```
 ---
-📝 PS: You can find a full example in the `/examples` folder.
+📝 PS: You can find a full example in the `/example` folder.
 
 ## Additional information ℹ️
 
@@ -545,7 +643,7 @@ Thank you for using this package! Your feedback and contribution are greatly app
 As a single developer, I have created this package with the intention of assisting you in building
 reactive views using the MVVM pattern and **[Signals](https://pub.dev/packages/signals)**.
 While I have put in my best effort, please note that this package may not be perfect or suitable for
-all types of projects. If you encounter any issue or have suggestions for improvement, please don't
+all types of projects. If you encounter any issues or have suggestions for improvement, please don't
 hesitate to file an issue on the Github repository. Additionally, contributions in the form of pull
 requests are always welcome!
 Your involvement can help enhance the package and make it even more valuable for the community.
