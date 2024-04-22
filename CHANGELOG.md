@@ -1,3 +1,10 @@
+## 2.0.0-dev-2
+
+* Fix example
+* Fix typos
+* Export the whole signal package
+* Update dependencies
+
 ## 2.0.0-dev-1
 
 * Update Documentation

@@ -140,7 +140,7 @@ class ViewState<VT extends FlViewModel> extends State<FlView<VT>> {
   void initState() {
     viewModel = widget.viewModel ?? widget.createViewModel()!;
     super.initState();
-    if (!viewModel.isInitilized) {
+    if (!viewModel.isInitialized) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         viewModel.onViewInitialized();
       });

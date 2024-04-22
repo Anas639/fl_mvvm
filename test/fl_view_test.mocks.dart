@@ -46,7 +46,7 @@ class MockTestViewModel extends _i1.Mock implements _i3.TestViewModel {
       ) as bool);
 
   @override
-  bool get isInitilized => (super.noSuchMethod(
+  bool get isInitialized => (super.noSuchMethod(
         Invocation.getter(#isInitilized),
         returnValue: false,
         returnValueForMissingStub: false,

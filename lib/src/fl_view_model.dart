@@ -50,7 +50,7 @@ class FlViewModel<T> {
   bool _isInitialized = false;
 
   /// Whether this [FlViewModel] has been initialized.
-  bool get isInitilized => _isInitialized;
+  bool get isInitialized => _isInitialized;
 
   Signal<FlState<T>> get state => _state;
 
