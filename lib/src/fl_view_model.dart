@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:fl_mvvm/fl_mvvm.dart';
 import 'package:meta/meta.dart';
-import 'package:signals_flutter/signals_flutter.dart';
 
 /// ### Represents a View Model
 ///
@@ -27,7 +26,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 /// setState(CustomState(customProperty:'hello 👋'));
 /// ```
 class FlViewModel<T> {
-  FlViewModel({this.autoDispose = true}) {
+  FlViewModel({this.autoDispose = false}) {
     this._setEffect();
     if (autoDispose) {
       state.onDispose(() async {
@@ -43,8 +42,7 @@ class FlViewModel<T> {
   dynamic Function()? _disposeEffect;
 
   /// The signal that holds the current [FlState].
-  late final _state =
-      signal<FlState<T>>(const FlEmptyState(), autoDispose: autoDispose);
+  late final _state = signal<FlState<T>>(const FlEmptyState(), autoDispose: autoDispose);
 
   /// Whether this [FlViewModel] has been initialized.
   bool _isInitialized = false;
@@ -215,8 +213,7 @@ class FlViewModel<T> {
   /// waitForStateChange(timeout: 200); // Will wait for the next state during 200 ms
   /// ```
   @visibleForTesting
-  Future<FlState<T>?> waitForStateChange<S extends FlState>(
-      {int? timeout}) async {
+  Future<FlState<T>?> waitForStateChange<S extends FlState>({int? timeout}) async {
     Completer<FlState<T>?> completer = Completer();
     Stream<FlState<T>> stream = _state.toStream();
     StreamSubscription<FlState<T>>? subscription;
