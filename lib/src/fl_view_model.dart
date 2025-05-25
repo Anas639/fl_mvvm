@@ -78,6 +78,20 @@ class FlViewModel<T> {
     return errorState.error.toString();
   }
 
+  /// ### Returns the current empty message.
+  ///
+  ///
+  /// ```dart
+  /// viewModel.setEmpty('No Data');
+  /// print(viewModel.emptyMessage); // prints 'No Data';
+  /// ```
+  ///
+  String? get emptyMessage {
+    if (_state.value is! FlEmptyState) return null;
+    FlEmptyState<T> emptyState = _state.value as FlEmptyState<T>;
+    return emptyState.message;
+  }
+
   /// Whether the current state is currently loading.
   bool get isLoadng => _state.peek() is FlLoadingState<T>;
 
