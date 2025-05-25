@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
 import 'package:fl_mvvm/fl_mvvm.dart';
 import 'package:meta/meta.dart';
 
@@ -181,6 +182,30 @@ class FlViewModel<T> {
     if (withLoading) setLoading();
     try {
       setData(await futureData);
+    } catch (e, s) {
+      setError(e, s);
+    }
+  }
+
+  /// ### Sets data from a [Future<Either>]
+  ///
+  /// If [future] completes successfully,
+  /// [setEitherFuture] will examine the [Either] value.
+  /// If it's [Right] then it sets the current state to an [FlDataState] containing the value of [Right].
+  /// If it's [Left] then it sets the current state to an [FlErrorState] with an error message equal to [Left] as [String]
+  /// If you use a custom object as [Left] then the value of [toString] will be used as the error message.
+  ///
+  /// If [future] completes with an error, [setEitherFuture] will catch the error and set the current state to [FlErrorState] with the caught error.
+  ///
+  /// If [withLoading] is true, [setEitherFuture] will call [setLoading] before waiting for the future.
+  void setEitherFuture(
+    Future<Either<dynamic, T>> future, {
+    bool withLoading = true,
+  }) async {
+    if (withLoading) setLoading();
+    try {
+      final response = await future;
+      response.fold((l) => setError(l.toString()), (r) => setData(r));
     } catch (e, s) {
       setError(e, s);
     }

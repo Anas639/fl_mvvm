@@ -1,5 +1,7 @@
+import 'package:dartz/dartz.dart';
 import 'package:fl_mvvm/src/fl_state.dart';
 import 'package:fl_mvvm/src/fl_view_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class MyCustomLoadingState<T> implements FlState<T> {
@@ -18,8 +20,7 @@ class TestViewModel extends FlViewModel<String> {
 /// This view model depends on [TestViewModel] and it's value will always be [TestViewModel]'s value reversed
 class ReverseStringViewModel extends FlViewModel<String> {
   final TestViewModel _testViewModel;
-  ReverseStringViewModel(TestViewModel testViewModel)
-      : _testViewModel = testViewModel;
+  ReverseStringViewModel(TestViewModel testViewModel) : _testViewModel = testViewModel;
 
   @override
   void buildDependencies() {
@@ -99,17 +100,13 @@ void main() {
   });
 
   test('Change State to Loading before setting future data', () {
-    Future<String> future =
-        Future.delayed(const Duration(milliseconds: 100), () => "");
+    Future<String> future = Future.delayed(const Duration(milliseconds: 100), () => "");
     viewModel.setFutureData(future);
     expect(viewModel.state.peek(), isA<FlLoadingState>());
   });
 
-  test(
-      'Does not change state to Loading before setting future data if [withLoading] is false',
-      () {
-    Future<String> future =
-        Future.delayed(const Duration(milliseconds: 100), () => "");
+  test('Does not change state to Loading before setting future data if [withLoading] is false', () {
+    Future<String> future = Future.delayed(const Duration(milliseconds: 100), () => "");
     viewModel.setFutureData(future, withLoading: false);
     expect(viewModel.state.peek(), isNot(isA<FlLoadingState>()));
   });
@@ -122,15 +119,12 @@ void main() {
   test('View Model rebuilds when a dependency state is changed', () async {
     String data = "String";
     String data2 = "Hello";
-    ReverseStringViewModel reverseStringViewModel =
-        ReverseStringViewModel(viewModel);
+    ReverseStringViewModel reverseStringViewModel = ReverseStringViewModel(viewModel);
     expect(reverseStringViewModel.value, isNull);
     viewModel.setData(data);
-    expect(
-        reverseStringViewModel.value, equals(data.split('').reversed.join()));
+    expect(reverseStringViewModel.value, equals(data.split('').reversed.join()));
     viewModel.setData(data2);
-    expect(
-        reverseStringViewModel.value, equals(data2.split('').reversed.join()));
+    expect(reverseStringViewModel.value, equals(data2.split('').reversed.join()));
   });
 
   test('Veiw Model disposes when autoDispose is set to true', () {
@@ -141,50 +135,56 @@ void main() {
   });
 
   group('Testing Utils', () {
-    test(
-        'waitForStateChange actually waits for state to change and returns the current state',
-        () {
+    test('waitForStateChange actually waits for state to change and returns the current state', () {
       String data = "abc";
-      expectLater(
-          viewModel.waitForStateChange(), completion(FlDataState(data)));
+      expectLater(viewModel.waitForStateChange(), completion(FlDataState(data)));
       viewModel.setData(data);
     });
 
-    test(
-        'waitForStateChange with a type doesn\'t complete until the state is actually of that type',
-        () {
+    test('waitForStateChange with a type doesn\'t complete until the state is actually of that type', () {
       String data = "abc";
-      expectLater(viewModel.waitForStateChange<FlDataState>(),
-          completion(FlDataState(data)));
+      expectLater(viewModel.waitForStateChange<FlDataState>(), completion(FlDataState(data)));
       viewModel.setLoading();
       viewModel.setData(data);
     });
 
-    test(
-        'waitForStateChane doesn\'t emit previous state and actually waits for a new one',
-        () {
+    test('waitForStateChane doesn\'t emit previous state and actually waits for a new one', () {
       String data = "123";
       viewModel.setLoading();
       viewModel.setData("abc");
       viewModel.setData("def");
       viewModel.setData("ghi");
-      expectLater(
-          viewModel.waitForStateChange(), completion(FlDataState(data)));
+      expectLater(viewModel.waitForStateChange(), completion(FlDataState(data)));
       viewModel.setData(data);
     });
 
-    test('waitForStateChange returns the value if compelts before the timeout',
-        () {
+    test('waitForStateChange returns the value if compelts before the timeout', () {
       String data = "data";
-      expectLater(viewModel.waitForStateChange(timeout: 500),
-          completion(FlDataState(data)));
+      expectLater(viewModel.waitForStateChange(timeout: 500), completion(FlDataState(data)));
       viewModel.setData(data);
     });
 
     test('waitForStateChange stops waiting after the timeout is reached', () {
       expectLater(viewModel.waitForStateChange(timeout: 100), completion(null));
-      Future.delayed(
-          const Duration(milliseconds: 200), () => viewModel.setData("data"));
+      Future.delayed(const Duration(milliseconds: 200), () => viewModel.setData("data"));
+    });
+  });
+
+  group('dartz either', () {
+    test('Sets data if response is right', () async {
+      final String data = "my-data";
+      Future<Either<String, String>> future() => Future.value(Right(data));
+      viewModel.setEitherFuture(future());
+      await viewModel.waitForStateChange<FlDataState>();
+      expect(viewModel.value, equals(data));
+    });
+
+    test('Sets error if response is left', () async {
+      final String error = "error";
+      Future<Either<String, String>> future() => Future.value(Left(error));
+      viewModel.setEitherFuture(future());
+      await viewModel.waitForStateChange<FlErrorState>();
+      expect(viewModel.errorMessage, equals(error));
     });
   });
 }
