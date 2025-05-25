@@ -11,12 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.10.0
-  signals_flutter: ^4.5.1
+  signals_flutter: ^6.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
   mockito: ^5.4.4
   build_runner: ^2.4.8
 
