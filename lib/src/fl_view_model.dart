@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:fl_mvvm/fl_mvvm.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:meta/meta.dart';
 
 /// ### Represents a View Model

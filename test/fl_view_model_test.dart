@@ -1,7 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:fl_mvvm/src/fl_state.dart';
 import 'package:fl_mvvm/src/fl_view_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fpdart/fpdart.dart';
 
 class MyCustomLoadingState<T> implements FlState<T> {
   const MyCustomLoadingState({required this.progress, this.data});

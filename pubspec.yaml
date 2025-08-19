@@ -1,16 +1,16 @@
 name: fl_mvvm
 description: A concise and powerful Flutter package that implements the MVVM (Model-View-ViewModel) architecture. Built on top of Signals for state management, this package provides a seamless and efficient way to handle the state of the view in your Flutter applications. With a clean separation of concerns and a reactive approach, it simplifies the development process and enhances the maintainability of your codebase.
-version: 2.0.0
+version: 3.0.0-dev-1
 repository: https://github.com/Anas639/fl_mvvm
 
 environment:
   sdk: '>=3.0.6 <4.0.0'
 
 dependencies:
-  dartz: ^0.10.1
   equatable: ^2.0.5
   flutter:
     sdk: flutter
+  fpdart: ^1.1.1
   meta: ^1.10.0
   signals_flutter: ^6.0.2
 

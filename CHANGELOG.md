@@ -1,10 +1,17 @@
 # CHANGELOG
 
+## 3.0.0-dev-1 [2025-08-19]
+
+### Changed
+
+- Migrate to `fpdart`
+
 ## 2.0.0 - 25-05-2025
 
 ### Added
 
-- Support `dartz` by introducing `setEitherFuture` to set Data or Error based on the value of `Either`.
+- Support `dartz` by introducing `setEitherFuture` to set Data or Error based on
+the value of `Either`.
 
 ### Fixed
 

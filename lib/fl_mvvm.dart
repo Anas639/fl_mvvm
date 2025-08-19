@@ -1,5 +1,5 @@
 /// Flutter MVVM library
-library fl_mvvm;
+library;
 
 export 'package:signals_flutter/signals_flutter.dart';
 export 'src/fl_state.dart';
