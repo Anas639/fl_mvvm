@@ -97,6 +97,9 @@ abstract class FlView<VT extends FlViewModel> extends StatefulWidget {
   Widget buildCustomState(BuildContext context, FlState state, VT viewModel) {
     return Text("Override buildCustomState to hande $state");
   }
+
+  /// Called when the view state is about to get disposed
+  void onDispose() {}
 }
 
 class ViewState<VT extends FlViewModel> extends State<FlView<VT>> {
@@ -119,8 +122,7 @@ class ViewState<VT extends FlViewModel> extends State<FlView<VT>> {
         var state = viewModel.state();
         return switch (state) {
           FlDataState() => widget.buildDataState(context, viewModel),
-          FlErrorState() => widget.buildErrorState(
-              context, viewModel, viewModel.errorMessage ?? ''),
+          FlErrorState() => widget.buildErrorState(context, viewModel, viewModel.errorMessage ?? ''),
           FlLoadingState() => widget.buildLoadingState(context, viewModel),
           FlEmptyState() => widget.buildEmptyState(context, viewModel),
           _ => widget.buildCustomState(context, state, viewModel)
@@ -133,6 +135,7 @@ class ViewState<VT extends FlViewModel> extends State<FlView<VT>> {
   @override
   void dispose() {
     if (!widget.keepViewModelAlive) viewModel.dispose();
+    widget.onDispose();
     super.dispose();
   }
 

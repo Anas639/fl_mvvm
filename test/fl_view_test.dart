@@ -21,11 +21,16 @@ class MyCustomLoadingState<T> implements FlState<T> {
 class TestViewModel extends FlViewModel<String> {}
 
 class TestView extends FlView<TestViewModel> {
-  const TestView({super.key, super.viewModel, super.keepViewModelAlive});
+  const TestView({super.key, super.viewModel, super.keepViewModelAlive, this.viewDisposed});
+  final Function? viewDisposed;
 
   @override
-  Widget? buildContainer(
-      BuildContext context, Widget child, TestViewModel viewModel) {
+  void onDispose() {
+    viewDisposed?.call();
+  }
+
+  @override
+  Widget? buildContainer(BuildContext context, Widget child, TestViewModel viewModel) {
     return Scaffold(
       body: child,
     );
@@ -42,8 +47,7 @@ class TestView extends FlView<TestViewModel> {
   }
 
   @override
-  Widget buildErrorState(
-      BuildContext context, TestViewModel viewModel, String error) {
+  Widget buildErrorState(BuildContext context, TestViewModel viewModel, String error) {
     return Text(error);
   }
 
@@ -53,8 +57,7 @@ class TestView extends FlView<TestViewModel> {
   }
 
   @override
-  Widget buildCustomState(
-      BuildContext context, FlState state, TestViewModel viewModel) {
+  Widget buildCustomState(BuildContext context, FlState state, TestViewModel viewModel) {
     return const Text('Custom State');
   }
 }
@@ -140,9 +143,7 @@ void main() {
     state.dispose();
   });
 
-  testWidgets(
-      'View Model disposes correctly when keepViewModelAlive is set to false',
-      (tester) async {
+  testWidgets('View Model disposes correctly when keepViewModelAlive is set to false', (tester) async {
     MockTestViewModel mockViewModel = MockTestViewModel();
     final state = signal(const FlEmptyState<String>());
     when(mockViewModel.state).thenReturn(state);
@@ -159,9 +160,7 @@ void main() {
     state.dispose();
   });
 
-  testWidgets(
-      'View Model do not dispose with the view when keepViewModelAlive is set to true',
-      (tester) async {
+  testWidgets('View Model do not dispose with the view when keepViewModelAlive is set to true', (tester) async {
     MockTestViewModel mockViewModel = MockTestViewModel();
     final state = signal(const FlEmptyState<String>());
     when(mockViewModel.state).thenReturn(state);
@@ -175,6 +174,28 @@ void main() {
       home: Container(),
     ));
     verifyNever(mockViewModel.dispose());
+    state.dispose();
+  });
+
+  testWidgets('onDispose is called when the view is disposed', (tester) async {
+    MockTestViewModel mockViewModel = MockTestViewModel();
+    final state = signal(const FlEmptyState<String>());
+    bool called = false;
+    when(mockViewModel.state).thenReturn(state);
+    await tester.pumpWidget(MaterialApp(
+      home: TestView(
+        viewModel: mockViewModel,
+        keepViewModelAlive: true,
+        viewDisposed: () {
+          called = true;
+        },
+      ),
+    ));
+    await tester.pumpWidget(MaterialApp(
+      home: Container(),
+    ));
+
+    expect(called, isTrue);
     state.dispose();
   });
 }

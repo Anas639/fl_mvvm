@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.0-dev-2 [2025-08-31]
+
+### Added
+
+- Add onDispose callback to FlView
+
 ## 3.0.0-dev-1 [2025-08-19]
 
 ### Changed
