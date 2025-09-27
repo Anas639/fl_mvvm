@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.0.0-dev-3 [2025-09-27]
+
+### Added
+
+- Add onInit callback to FlView
+
 ## 3.0.0-dev-2 [2025-08-31]
 
 ### Added

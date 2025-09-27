@@ -21,12 +21,18 @@ class MyCustomLoadingState<T> implements FlState<T> {
 class TestViewModel extends FlViewModel<String> {}
 
 class TestView extends FlView<TestViewModel> {
-  const TestView({super.key, super.viewModel, super.keepViewModelAlive, this.viewDisposed});
+  const TestView({super.key, super.viewModel, super.keepViewModelAlive, this.viewDisposed, this.viewInitialized});
   final Function? viewDisposed;
+  final Function? viewInitialized;
 
   @override
   void onDispose() {
     viewDisposed?.call();
+  }
+
+  @override
+  onInit() {
+    viewInitialized?.call();
   }
 
   @override
@@ -195,6 +201,24 @@ void main() {
       home: Container(),
     ));
 
+    expect(called, isTrue);
+    state.dispose();
+  });
+
+  testWidgets('onInit is called when the view is initialized', (tester) async {
+    MockTestViewModel mockViewModel = MockTestViewModel();
+    final state = signal(const FlEmptyState<String>());
+    when(mockViewModel.state).thenReturn(state);
+    bool called = false;
+    await tester.pumpWidget(MaterialApp(
+      home: TestView(
+        viewModel: mockViewModel,
+        keepViewModelAlive: true,
+        viewInitialized: () {
+          called = true;
+        },
+      ),
+    ));
     expect(called, isTrue);
     state.dispose();
   });

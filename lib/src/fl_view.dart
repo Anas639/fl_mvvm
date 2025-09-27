@@ -47,6 +47,9 @@ abstract class FlView<VT extends FlViewModel> extends StatefulWidget {
     return null;
   }
 
+  /// Called when the view state is initialzied
+  onInit() {}
+
   /// Returns a [Widget] that wraps the content of the view.
   ///
   /// Use it to wrap your view with a [Scaffold] for example.
@@ -141,6 +144,7 @@ class ViewState<VT extends FlViewModel> extends State<FlView<VT>> {
 
   @override
   void initState() {
+    widget.onInit();
     viewModel = widget.viewModel ?? widget.createViewModel()!;
     super.initState();
     if (!viewModel.isInitialized) {
